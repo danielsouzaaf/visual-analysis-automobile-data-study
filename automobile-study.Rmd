@@ -1,0 +1,155 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+install.packages("plyr") 
+install.packages("ggplot2") 
+install.packages("reshape2") 
+```
+
+```{r}
+library(plyr) 
+library(ggplot2) 
+library(reshape2)
+```
+
+
+```{r}
+vehicles <- read.csv(("data/vehicles.csv"), 
+ stringsAsFactors = F)
+```
+
+
+
+```{r}
+head(vehicles)
+```
+
+```{r}
+labels <- do.call(rbind, strsplit(readLines("data/varlabels.txt"), " - "))
+```
+
+```{r}
+head(labels)
+```
+
+```{r}
+nrow(vehicles)
+```
+
+```{r}
+ncol(vehicles)
+```
+
+```{r}
+names(vehicles)
+```
+
+```{r}
+length(unique(vehicles[, "year"]))
+```
+
+```{r}
+first_year <- min(vehicles[, "year"])
+last_year <- max(vehicles[, "year"])
+```
+
+```{r}
+length(unique(vehicles$year))
+```
+```{r}
+table(vehicles$fuelType1)
+```
+
+```{r}
+vehicles$trany[vehicles$trany == ""] <- NA
+```
+
+```{r}
+vehicles$trany2 <- ifelse(substr(vehicles$trany, 1, 4) == "Auto", "Auto", "Manual")
+```
+```{r}
+vehicles$trany <- as.factor(vehicles$trany)
+table(vehicles$trany2)
+```
+
+```{r}
+mpgByYr <- ddply(vehicles, ~year, summarise, avgMPG = 
+ mean(comb08), avgHghy = mean(highway08), avgCity = 
+ mean(city08))
+```
+
+```{r}
+ggplot(mpgByYr, aes(year, avgMPG)) + geom_point() + 
+ geom_smooth() + xlab("Year") + ylab("Average MPG") + 
+ ggtitle("All cars") 
+## geom_smooth: method="auto" and size of largest group is <1000, so using 
+## loess. Use 'method = x' to change the smoothing method.
+```
+
+```{r}
+table(vehicles$fuelType1)
+```
+
+```{r}
+gasCars <- subset(vehicles, fuelType1 %in% c("Regular Gasoline", 
+"Premium Gasoline", "Midgrade Gasoline") & fuelType2 == "" & atvType != "Hybrid") 
+mpgByYr_Gas <- ddply(gasCars, ~year, summarise, avgMPG = mean(comb08)) 
+ggplot(mpgByYr_Gas, aes(year, avgMPG)) + geom_point() + 
+ geom_smooth() + xlab("Year") + ylab("Average MPG") + ggtitle("Gasoline cars") 
+## geom_smooth: method="auto" and size of largest group is <1000, so using 
+## loess. Use 'method = x' to change the smoothing method.  
+```
+
+```{r}
+typeof(gasCars$displ) 
+
+```
+
+```{r}
+ggplot(gasCars, aes(displ, comb08)) + geom_point() + 
+ geom_smooth() 
+```
+
+```{r}
+avgCarSize <- ddply(gasCars, ~year, summarise, avgDispl = mean(displ)) 
+ggplot(avgCarSize, aes(year, avgDispl)) + geom_point() + 
+ geom_smooth() + xlab("Year") + ylab("Average engine displacement (L)")
+```
+
+```{r}
+byYear <- ddply(gasCars, ~year, summarise, avgMPG = mean(comb08), 
+  avgDispl = mean(displ)) 
+
+head(byYear)
+```
+
+```{r}
+byYear2 = melt(byYear, id = "year")
+ levels(byYear2$variable) <- c("Average MPG", "Avg engine displacement") 
+
+head(byYear2) 
+```
+
+```{r}
+ggplot(byYear2, aes(year, value)) + geom_point() + 
+ geom_smooth() + facet_wrap(~variable, ncol = 1, scales = 
+ "free_y") + xlab("Year") + ylab("") 
+```
+
+```{r}
+gasCars4 <- subset(gasCars, cylinders == "4") 
+
+ggplot(gasCars4, aes(factor(year), comb08)) + geom_boxplot() + facet_wrap(~trany2, ncol = 1) + theme(axis.text.x = element_text(angle = 45)) + labs(x = "Year", y = "MPG")
+```
+
+```{r}
+ggplot(gasCars4, aes(factor(year), fill = factor(trany2))) + 
+ geom_bar(position = "fill") + labs(x = "Year", y = "Proportion 
+ of cars", fill = "Transmission") + theme(axis.text.x = 
+ element_text(angle = 45)) + geom_hline(yintercept = 0.5, 
+ linetype = 2)
+```
+
+
