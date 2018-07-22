@@ -2,20 +2,22 @@
 title: "R Notebook"
 output: html_notebook
 ---
-```{r}
+```{r message=TRUE, warning=FALSE, include=FALSE}
 install.packages("plyr") 
 install.packages("ggplot2") 
 install.packages("reshape2") 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(plyr) 
 library(ggplot2) 
 library(reshape2)
 ```
 
+## Importing automobile fuel efficiency data into R
 
-```{r}
+
+```{r message=FALSE, warning=FALSE}
 vehicles <- read.csv(("data/vehicles.csv"), 
  stringsAsFactors = F)
 ```
@@ -33,6 +35,9 @@ labels <- do.call(rbind, strsplit(readLines("data/varlabels.txt"), " - "))
 ```{r}
 head(labels)
 ```
+
+## Exploring and describing fuel efficiency data
+
 
 ```{r}
 nrow(vehicles)
@@ -69,10 +74,14 @@ vehicles$trany[vehicles$trany == ""] <- NA
 ```{r}
 vehicles$trany2 <- ifelse(substr(vehicles$trany, 1, 4) == "Auto", "Auto", "Manual")
 ```
+
 ```{r}
 vehicles$trany <- as.factor(vehicles$trany)
 table(vehicles$trany2)
 ```
+
+## Analyzing automobile fuel efficiency over time
+
 
 ```{r}
 mpgByYr <- ddply(vehicles, ~year, summarise, avgMPG = 
@@ -151,6 +160,8 @@ ggplot(gasCars4, aes(factor(year), fill = factor(trany2))) +
  element_text(angle = 45)) + geom_hline(yintercept = 0.5, 
  linetype = 2)
 ```
+
+## Investigating the makes and models of automobiles
 
 ```{r}
 carsMake <- ddply(gasCars4, ~year, summarise, numberOfMakes = length(unique(make))) 
